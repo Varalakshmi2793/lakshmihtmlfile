@@ -1,64 +1,68 @@
-const expenseForm = document.getElementById('expense-form');
-const expenseList = document.getElementById('expense-list');
-
-function addExpense(amount, description, category) {
-    const expense = {
-        amount: amount,
-        description: description,
-        category: category
-    };
-
-    let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
-    expenses.push(expense);
-    localStorage.setItem('expenses', JSON.stringify(expenses));
-
-    displayExpenses();
-}
-
-function displayExpenses() {
-    expenseList.innerHTML = '';
-    const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
-
-    expenses.forEach(expense => {
-        const li = document.createElement('li');
-        li.innerHTML = `
-            Amount: $${expense.amount}, 
-            Description: ${expense.description}, 
-            Category: ${expense.category}
-            <button onclick="deleteExpense(${expense.id})">Delete</button>
-            <button onclick="editExpense(${expense.id})">Edit</button>
-        `;
-        expenseList.appendChild(li);
-    });
-}
-
-function deleteExpense(id) {
-    let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
-    expenses = expenses.filter(expense => expense.id !== id);
-    localStorage.setItem('expenses', JSON.stringify(expenses));
-    displayExpenses();
-}
-
-
-function editExpense(id) {
-    let expenses=JSON.parse(localStorage.getItem('expenses'))||[];
-   const expenseedit=expenses.find(expense=>expense.id==id);
-   document.getElementById("amount").value=expenseedit.amount;
-   document.getElementById("description").value=expenseedit.description;
-   document.getElementById("category").value=expenseedit.category;
-   const subm=document.querySelector('#expense-form button[type="submit"]');
-   subm.textContent="submit";
-   }
-
-expenseForm.addEventListener('submit', function(event) {
+function handleFormSubmit(event) {
     event.preventDefault();
-    const amount = document.getElementById('amount').value;
-    const description = document.getElementById('description').value;
-    const category = document.getElementById('category').value;
-
-    addExpense(amount, description, category);
-
-    this.reset();
-});
-
-displayExpenses();
+    const userDetails = {
+      username: event.target.username.value,
+      email: event.target.email.value,
+      phone: event.target.phone.value,
+    };
+    axios
+      .post(
+        "https://crudcrud.com/api/2d8ebdc0bd854420a84c5db1a6029dd7/appointmentData",
+        userDetails
+      )
+      .then((response) => displayUserOnScreen(response.data))
+      .catch((error) => console.log(error));
+  
+    // Clearing the input fields
+    document.getElementById("username").value = "";
+    document.getElementById("email").value = "";
+    document.getElementById("phone").value = "";
+  }
+  window.addEventListener("DOMContentLoaded",()=>{
+    axios.get("https://crudcrud.com/api/2d8ebdc0bd854420a84c5db1a6029dd7/appointmentData")
+    .then((resolve)=>{
+        console.log(resolve);
+        for(let i=0;i<=resolve.data.length; i++){
+            displayUserOnScreen(resolve.data[i])
+        }
+    })
+    .catch((error)=>{
+        console.log(error);
+    });
+  })
+  function displayUserOnScreen(userDetails) {
+    const userItem = document.createElement("li");
+    userItem.appendChild(
+      document.createTextNode(
+        `${userDetails.username} - ${userDetails.email} - ${userDetails.phone}`
+      )
+    );
+  
+    const deleteBtn = document.createElement("button");
+    deleteBtn.appendChild(document.createTextNode("Delete"));
+    userItem.appendChild(deleteBtn);
+  
+    const editBtn = document.createElement("button");
+    editBtn.appendChild(document.createTextNode("Edit"));
+    userItem.appendChild(editBtn);
+  
+    const userList = document.querySelector("ul");
+    userList.appendChild(userItem);
+  
+    deleteBtn.addEventListener("click", function (event) {
+      userList.removeChild(event.target.parentElement);
+      localStorage.removeItem(userDetails.email);
+    });
+  
+    editBtn.addEventListener("click", function (event) {
+      userList.removeChild(event.target.parentElement);
+      localStorage.removeItem(userDetails.email);
+      document.getElementById("username").value = userDetails.username;
+      document.getElementById("email").value = userDetails.email;
+      document.getElementById("phone").value = userDetails.phone;
+    });
+  }
+  
+  // Do not touch code below
+module.exports = handleFormSubmit;
+  
